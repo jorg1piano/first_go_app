@@ -44,3 +44,26 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 
 	respondWithJSON(w, 200, databaseUserToUser(user))
 }
+
+func (apiCfg *apiConfig) handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		ApiKey string `json:"apiKey"`
+	}
+
+	params := parameters{}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&params)
+
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Error parsing json %v", err))
+		return
+	}
+
+	user, err := apiCfg.DB.GetUserByAPIKey(r.Context(), params.ApiKey)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Failed to get user by api key %v", params.ApiKey))
+		return
+	}
+
+	respondWithJSON(w, 200, databaseUserToUser(user))
+}
